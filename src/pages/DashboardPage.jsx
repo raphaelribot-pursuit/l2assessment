@@ -8,6 +8,7 @@ function DashboardPage() {
     avgPerDay: 0
   })
   const [categoryData, setCategoryData] = useState([])
+  const [subCategoryData, setSubCategoryData] = useState([])
   const [urgencyData, setUrgencyData] = useState({ High: 0, Medium: 0, Low: 0 })
 
   useEffect(() => {
@@ -38,6 +39,14 @@ function DashboardPage() {
       categories[item.category] = (categories[item.category] || 0) + 1
     })
     setCategoryData(Object.entries(categories).map(([name, count]) => ({ name, count })))
+
+    // Subcategory distribution
+    const subcategories = {}
+    history.forEach(item => {
+      const subcategory = item.subcategory || 'General'
+      subcategories[subcategory] = (subcategories[subcategory] || 0) + 1
+    })
+    setSubCategoryData(Object.entries(subcategories).map(([name, count]) => ({ name, count })))
 
     // Urgency breakdown
     const urgency = { High: 0, Medium: 0, Low: 0 }
@@ -135,6 +144,34 @@ function DashboardPage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Subcategory Distribution */}
+        <div className="bg-white rounded-lg shadow p-6 mt-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Subcategory Distribution</h2>
+          {subCategoryData.length <= 1 ? (
+            <div className="text-center text-gray-500 py-8">No subcategory data yet</div>
+          ) : (
+            <div className="space-y-3">
+              {subCategoryData.map((subcat) => {
+                const percentage = stats.total > 0 ? (subcat.count / stats.total) * 100 : 0
+                return (
+                  <div key={subcat.name}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-gray-700">{subcat.name}</span>
+                      <span className="text-gray-600">{subcat.count} ({percentage.toFixed(0)}%)</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-slate-500 h-2 rounded-full"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
 
         {/* Insights Section */}

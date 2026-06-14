@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { categorizeMessage } from '../utils/llmHelper'
-import { calculateUrgency } from '../utils/urgencyScorer'
 import { getRecommendedAction } from '../utils/templates'
 
 function AnalyzePage() {
@@ -28,18 +27,16 @@ function AnalyzePage() {
     setResults(null)
     
     try {
-      // Run categorization (LLM call)
-      const { category, reasoning } = await categorizeMessage(message)
-      
-      // Calculate urgency (rule-based)
-      const urgency = calculateUrgency(message)
+      // Run categorization (LLM call) - now includes AI-based urgency assessment
+      const { category, subcategory, urgency, reasoning } = await categorizeMessage(message)
       
       // Get recommended action (template-based)
-      const recommendedAction = getRecommendedAction(category)
+      const recommendedAction = getRecommendedAction(category, subcategory)
       
       const analysisResult = {
         message,
         category,
+        subcategory,
         urgency,
         recommendedAction,
         reasoning,
@@ -138,6 +135,13 @@ function AnalyzePage() {
               </div>
 
               <div>
+                <div className="text-sm font-semibold text-gray-600 mb-1">Subcategory</div>
+                <div className="inline-block bg-slate-100 text-slate-900 px-4 py-2 rounded-lg font-semibold">
+                  {results.subcategory}
+                </div>
+              </div>
+
+              <div>
                 <div className="text-sm font-semibold text-gray-600 mb-1">Urgency Level</div>
                 <div className={`inline-block px-4 py-2 rounded-lg font-semibold ${
                   results.urgency === 'High' ? 'bg-red-200 text-red-900' :
@@ -170,7 +174,7 @@ function AnalyzePage() {
             <div className="mt-6 pt-4 border-t border-gray-200">
               <button
                 onClick={() => {
-                  const text = `Category: ${results.category}\nUrgency: ${results.urgency}\nRecommendation: ${results.recommendedAction}\n\nReasoning: ${results.reasoning}`
+                  const text = `Category: ${results.category}\nSubcategory: ${results.subcategory}\nUrgency: ${results.urgency}\nRecommendation: ${results.recommendedAction}\n\nReasoning: ${results.reasoning}`
                   navigator.clipboard.writeText(text)
                   alert('Results copied to clipboard!')
                 }}
